@@ -1,0 +1,28 @@
+# Create resource group
+az group create --name private-site-sample --location eastus
+
+# Create vnet
+az network vnet create -g private-site-sample --location eastus --name myvnet --address-prefixes 10.101.0.0/16
+
+# Create vnet subnets
+az network vnet subnet create -g private-site-sample --name default --vnet-name myvnet --address-prefixes 10.101.1.0/24
+az network vnet subnet create -g private-site-sample --name AzureBastionSubnet --vnet-name myvnet --address-prefixes 10.101.2.0/27
+
+# Create Azure Function Consumption plan
+az storage account create -g private-site-sample -l eastus --name funcstorage20200522 --sku Standard_LRS
+az functionapp create -g private-site-sample --name privatefunc20200522 --storage-account funcstorage20200522 --consumption-plan-location eastus --functions-version 3 --runtime dotnet
+
+# configure service endpoint
+az functionapp config access-restriction add -g private-site-sample -n privatefunc20200522 --rule-name my-vnet-only --action Allow --vnet-name myvnet --subnet default --priority 300 --description "my vnet only"
+
+# create azure vm
+az vm create -g private-site-sample -l eastus --name myVm --image MicrosoftWindowsServer:WindowsServer:2019-Datacenter:2019.0.20190603 --admin-username AzureUser --admin-password P@ssword!123456789 --vnet-name myvnet --subnet default
+az vm auto-shutdown -g private-site-sample --name myVm --time 2200 -l eastus
+
+# create azure bastion
+az network public-ip create -g private-site-sample -l eastus -n MyBastionIp --allocation-method Static --sku Standard --query publicIp.ipAddress -o tsv
+az network bastion create --name MyBastionHost --public-ip-address MyBastionIp -g private-site-sample --vnet-name myvnet --location eastus
+
+# Deploy code
+dotnet build
+func azure functionapp publish privatefunc20200522
