@@ -16,7 +16,7 @@ az functionapp create -g private-site-sample --name privatefunc20200522 --storag
 az functionapp config access-restriction add -g private-site-sample -n privatefunc20200522 --rule-name my-vnet-only --action Allow --vnet-name myvnet --subnet default --priority 300 --description "my vnet only"
 
 # create azure vm
-az vm create -g private-site-sample -l eastus --name myVm --image MicrosoftWindowsServer:WindowsServer:2019-Datacenter:2019.0.20190603 --admin-username AzureUser --admin-password P@ssword!123456789 --vnet-name myvnet --subnet default
+az vm create -g private-site-sample -l eastus --name myVm --image MicrosoftWindowsServer:WindowsServer:2019-Datacenter:2019.0.20190603 --admin-username AzureUser --admin-password [YOUR-SUPER-SECRET-PASSWORD] --vnet-name myvnet --subnet default
 az vm auto-shutdown -g private-site-sample --name myVm --time 2200 -l eastus
 
 # create azure bastion
